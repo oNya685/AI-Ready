@@ -6,15 +6,18 @@ from typing import Any
 
 import httpx
 from loguru import logger
+from mcp.types import Tool as MCPTool
+from mcp.client.session import ClientSession
 
 from nanobot.agent.tools.base import Tool
 from nanobot.agent.tools.registry import ToolRegistry
+from nanobot.config.schema import MCPServerConfig
 
 
 class MCPToolWrapper(Tool):
     """Wraps a single MCP server tool as a nanobot Tool."""
 
-    def __init__(self, session, server_name: str, tool_def, tool_timeout: int = 30):
+    def __init__(self, session: ClientSession, server_name: str, tool_def: MCPTool, tool_timeout: int = 30):
         self._session = session
         self._original_name = tool_def.name
         self._name = f"mcp_{server_name}_{tool_def.name}"
@@ -54,10 +57,10 @@ class MCPToolWrapper(Tool):
 
 
 async def connect_mcp_servers(
-    mcp_servers: dict, registry: ToolRegistry, stack: AsyncExitStack
+    mcp_servers: dict[str, MCPServerConfig], registry: ToolRegistry, stack: AsyncExitStack
 ) -> None:
     """Connect to configured MCP servers and register their tools."""
-    from mcp import ClientSession, StdioServerParameters
+    from mcp import StdioServerParameters
     from mcp.client.stdio import stdio_client
 
     for name, cfg in mcp_servers.items():
