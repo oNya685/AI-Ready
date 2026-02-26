@@ -42,6 +42,7 @@ dependencies = [
     "prompt-toolkit>=3.0.50,<4.0.0",
     "mcp>=1.26.0,<2.0.0",
     "json-repair>=0.57.0,<1.0.0",
+    "pandas>=3.0.1",
 ]
 
 [project.optional-dependencies]
@@ -95,3 +96,8 @@ ignore = ["E501"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]
