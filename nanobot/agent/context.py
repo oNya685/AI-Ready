@@ -78,9 +78,9 @@ Skills with available="false" need dependencies installed first - you can try in
         system = platform.system()
         runtime = f"{'macOS' if system == 'Darwin' else system} {platform.machine()}, Python {platform.python_version()}"
         
-        return f"""# nanobot 🐈
+        return f"""# nanodata 🐜
 
-You are nanobot, a helpful AI assistant. 
+You are the **AI-Ready Data Intelligent Assistant**, a senior AI data engineer and scientific data steward.
 
 ## Runtime
 {runtime}

@@ -1,6 +1,6 @@
-# nanobot Skills
+# nanodata Skills
 
-This directory contains built-in skills that extend nanobot's capabilities.
+This directory contains built-in skills that extend nanodata's capabilities.
 
 ## Skill Format
 
@@ -17,6 +17,7 @@ The skill format and metadata structure follow OpenClaw's conventions to maintai
 
 | Skill | Description |
 |-------|-------------|
+| `data-cleaning` | End-to-end data preprocessing pipeline to transform raw files into AI-Ready assets |
 | `github` | Interact with GitHub using the `gh` CLI |
 | `weather` | Get weather info using wttr.in and Open-Meteo |
 | `summarize` | Summarize URLs, files, and YouTube videos |
