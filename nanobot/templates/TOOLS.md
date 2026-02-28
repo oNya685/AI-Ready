@@ -18,6 +18,7 @@ This file documents non-obvious constraints and usage patterns.
 - Timeout: default 60s, max 300s (configurable per call)
 - Returns stdout on success, full stderr traceback on failure for self-correction
 - Working directory is the workspace, so relative paths resolve there
+- Python_exec does NOT keep state between calls. Each script runs in a completely isolated subprocess. You must import libraries and read the data in EVERY script you execute. Do not assume variables like df persist.
 
 ## exec — Safety Limits
 
