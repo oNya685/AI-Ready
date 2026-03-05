@@ -18,7 +18,8 @@ The skill format and metadata structure follow OpenClaw's conventions to maintai
 | Skill | Description |
 |-------|-------------|
 | `data-cleaning` | End-to-end data preprocessing pipeline to transform raw files into AI-Ready assets |
-| `data-to-text` | Convert structured data (CSV/Parquet) into semantic text documents for LLM fine-tuning |
+| `data-to-text` | Convert structured data (CSV/Parquet) into semantic text documents (AI-Ready Markdown) |
+| `sft-dataset` | Transform AI-Ready documents into LLM fine-tuning datasets using Easy Dataset |
 | `github` | Interact with GitHub using the `gh` CLI |
 | `weather` | Get weather info using wttr.in and Open-Meteo |
 | `summarize` | Summarize URLs, files, and YouTube videos |

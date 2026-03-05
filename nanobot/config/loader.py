@@ -1,6 +1,7 @@
 """Configuration loading utilities."""
 
 import json
+import sys
 from pathlib import Path
 
 from nanobot.config.schema import Config
@@ -15,6 +16,22 @@ def get_data_dir() -> Path:
     """Get the nanobot data directory."""
     from nanobot.utils.helpers import get_data_path
     return get_data_path()
+
+
+def get_builtin_mcp_servers() -> dict:
+    """Get built-in MCP server configurations."""
+    from nanobot.mcp_servers import get_easy_dataset_server_path
+
+    return {
+        "easy-dataset": {
+            "command": sys.executable,
+            "args": [str(get_easy_dataset_server_path())],
+            "env": {
+                "EASY_DATASET_URL": "http://localhost:1717"
+            },
+            "toolTimeout": 120
+        }
+    }
 
 
 def load_config(config_path: Path | None = None) -> Config:
@@ -34,12 +51,14 @@ def load_config(config_path: Path | None = None) -> Config:
             with open(path, encoding="utf-8") as f:
                 data = json.load(f)
             data = _migrate_config(data)
+            data = _add_builtin_mcp_servers(data)
             return Config.model_validate(data)
         except (json.JSONDecodeError, ValueError) as e:
             print(f"Warning: Failed to load config from {path}: {e}")
             print("Using default configuration.")
 
-    return Config()
+    config = Config()
+    return _inject_builtin_mcp_servers(config)
 
 
 def save_config(config: Config, config_path: Path | None = None) -> None:
@@ -67,3 +86,31 @@ def _migrate_config(data: dict) -> dict:
     if "restrictToWorkspace" in exec_cfg and "restrictToWorkspace" not in tools:
         tools["restrictToWorkspace"] = exec_cfg.pop("restrictToWorkspace")
     return data
+
+
+def _add_builtin_mcp_servers(data: dict) -> dict:
+    """Add built-in MCP servers to config data if not already present."""
+    tools = data.setdefault("tools", {})
+    mcp_servers = tools.setdefault("mcpServers", {})
+
+    builtin = get_builtin_mcp_servers()
+    for name, config in builtin.items():
+        if name not in mcp_servers:
+            mcp_servers[name] = config
+
+    return data
+
+
+def _inject_builtin_mcp_servers(config: Config) -> Config:
+    """Inject built-in MCP servers into Config object."""
+    builtin = get_builtin_mcp_servers()
+    for name, server_config in builtin.items():
+        if name not in config.tools.mcp_servers:
+            from nanobot.config.schema import MCPServerConfig
+            config.tools.mcp_servers[name] = MCPServerConfig(
+                command=server_config["command"],
+                args=server_config["args"],
+                env=server_config.get("env", {}),
+                tool_timeout=server_config.get("toolTimeout", 30)
+            )
+    return config

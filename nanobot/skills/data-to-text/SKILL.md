@@ -1,11 +1,11 @@
 ---
 name: data-to-text
-description: Convert structured data (CSV/Parquet/Excel) into semantic, readable text documents or experimental reports for LLM fine-tuning. Use when the user wants to transform tabular data into natural language narratives, generate training corpus, or create AI-Ready text documents from datasets.
+description: Convert structured data (CSV/Parquet/Excel) into semantic, readable text documents or experimental reports for LLM fine-tuning. Use when the user wants to transform tabular data into natural language narratives, generate training corpus, or create AI-Ready text documents from datasets. Output is Markdown format ready for further processing.
 ---
 
 # Data-to-Text Transformation
 
-Transform structured tabular data into semantic, LLM-friendly text documents for supervised fine-tuning.
+Transform structured tabular data into semantic, LLM-friendly text documents.
 
 ## Core Directives
 
@@ -72,3 +72,33 @@ Review the generated document:
 Default output: `{source_filename}_corpus.md`
 
 Each row becomes a section in the Markdown document, separated by horizontal rules or headers.
+
+## Next Steps
+
+The generated Markdown document is **AI-Ready**. To convert it into an LLM fine-tuning dataset:
+
+→ Use the `sft-dataset` skill to generate QA pairs and export in Alpaca/ShareGPT format.
+
+## Complete Example
+
+Input: `experiments.csv` (100 rows of experimental records)
+
+```
+1. data_profile("experiments.csv")
+   → Understand schema: exp_id, date, temp_c, reaction_type, yield_pct, notes
+
+2. Design template:
+   ## 实验 {exp_id}
+   日期: {date}
+   在 {temp_c}°C 下进行 {reaction_type} 反应...
+
+3. python_exec(template_script)
+   → Generate experiments_corpus.md
+
+4. Verify output:
+   - 100 experiment reports
+   - Natural language format
+   - Ready for SFT processing
+```
+
+Output: `experiments_corpus.md` (AI-Ready document)
