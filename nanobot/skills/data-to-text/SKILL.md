@@ -73,11 +73,25 @@ Default output: `{source_filename}_corpus.md`
 
 Each row becomes a section in the Markdown document, separated by horizontal rules or headers.
 
-## Next Steps
+## Next Steps (Optional)
 
-The generated Markdown document is **AI-Ready**. To convert it into an LLM fine-tuning dataset:
+The generated Markdown document is **AI-Ready** and can be used for various purposes:
 
-→ Use the `sft-dataset` skill to generate QA pairs and export in Alpaca/ShareGPT format.
+- **RAG/Search**: Index the documents for retrieval-augmented generation
+- **Knowledge Base**: Build domain-specific knowledge repositories
+- **Content Analysis**: Perform NLP analysis on the structured narratives
+- **LLM Fine-tuning**: Convert to SFT training data (see below)
+
+### For LLM Fine-tuning
+
+If you want to convert the AI-Ready documents into supervised fine-tuning (SFT) datasets:
+
+→ Use the **`sft-dataset`** skill to:
+- Upload documents to Easy Dataset
+- Generate question-answer pairs using AI
+- Export in Alpaca or ShareGPT format
+
+This is an optional workflow step—only proceed if your goal is to create training data for fine-tuning LLMs.
 
 ## Complete Example
 
