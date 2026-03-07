@@ -106,12 +106,12 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="upload_file",
-            description="Upload a file (Markdown or PDF) to a project. Returns file ID.",
+            description="Upload an AI-Ready file (Markdown or PDF) to a project. Returns file ID. IMPORTANT: Upload semantic, narrative documents (experimental reports, articles, structured text), NOT raw source data like CSV/Excel. Use data-to-text skill to transform structured data into readable documents first.",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "project_id": {"type": "string", "description": "Project ID"},
-                    "file_path": {"type": "string", "description": "Local file path to upload"},
+                    "file_path": {"type": "string", "description": "Local file path to upload (AI-Ready Markdown/PDF with semantic content)"},
                 },
                 "required": ["project_id", "file_path"],
             },
@@ -272,7 +272,7 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="export_dataset",
-            description="Export dataset in specified format (alpaca, sharegpt, etc.).",
+            description="Export dataset in specified format (alpaca, sharegpt, etc.). Returns data and optionally saves to file.",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -289,6 +289,10 @@ async def list_tools() -> list[Tool]:
                     "system_prompt": {
                         "type": "string",
                         "description": "Custom system prompt (optional)",
+                    },
+                    "output_path": {
+                        "type": "string",
+                        "description": "Local file path to save exported data (optional, e.g., /path/to/dataset.jsonl)",
                     },
                 },
                 "required": ["project_id"],
@@ -581,14 +585,51 @@ async def execute_tool(name: str, args: dict[str, Any]) -> dict:
 
     elif name == "export_dataset":
         project_id = args["project_id"]
+        export_format = args.get("format", "alpaca")
+
+        # Get export data from API
         json_data = {
-            "format": args.get("format", "alpaca"),
+            "format": export_format,
         }
         if args.get("status"):
             json_data["status"] = args["status"]
         if args.get("system_prompt"):
             json_data["systemPrompt"] = args["system_prompt"]
-        return await api_request("POST", f"/api/projects/{project_id}/datasets/export", json_data=json_data)
+
+        result = await api_request("POST", f"/api/projects/{project_id}/datasets/export", json_data=json_data)
+
+        # Save to file if output_path is provided
+        output_path = args.get("output_path")
+        if output_path and isinstance(result, list):
+            output_file = Path(output_path)
+            output_file.parent.mkdir(parents=True, exist_ok=True)
+
+            # Determine file extension based on format
+            ext = ".json"
+            if export_format in ["alpaca", "sharegpt"]:
+                ext = ".jsonl"
+
+            # Add extension if not present
+            if not output_file.suffix:
+                output_file = output_file.with_suffix(ext)
+
+            # Write data
+            with open(output_file, "w", encoding="utf-8") as f:
+                if ext == ".jsonl":
+                    # JSONL format: one JSON object per line
+                    for item in result:
+                        f.write(json.dumps(item, ensure_ascii=False) + "\n")
+                else:
+                    # JSON format: pretty printed array
+                    json.dump(result, f, ensure_ascii=False, indent=2)
+
+            return {
+                "data": result,
+                "saved_to": str(output_file),
+                "count": len(result)
+            }
+
+        return result
 
     elif name == "configure_model":
         project_id = args["project_id"]

@@ -46,14 +46,16 @@ Common providers: `openai`, `ollama`, `zhipu`, `qwen`, `deepseek`
 
 ### Phase 3: Upload Documents
 
-Upload Markdown or PDF files:
+Upload **AI-Ready Markdown or PDF files** (semantic, narrative documents, NOT raw source data):
 
 ```
 mcp_easy_dataset_upload_file(
     project_id="...",
-    file_path="path/to/document.md"
+    file_path="path/to/ai_ready_document.md"
 )
 ```
+
+**Important:** Easy Dataset requires **AI-Ready documents** with semantic meaning—natural language narratives, experimental reports, or structured text. Do NOT upload raw CSV, Excel, or database dumps directly. Use the `data-to-text` skill first to transform structured data into readable documents.
 
 Returns: `{"fileId": "...", "fileName": "...", ...}`
 
