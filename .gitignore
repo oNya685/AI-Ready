@@ -22,3 +22,4 @@ botpy.log
 tests/
 .vscode/
 uv.lock
+easy-dataset/
