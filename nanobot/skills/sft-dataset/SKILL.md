@@ -111,6 +111,79 @@ mcp_easy_dataset_generate_answer(
 )
 ```
 
+
+### Async Tasks: Polling via Cron or Heartbeat
+
+Easy Dataset tasks are async. After submitting a task, schedule a self-wake check.
+
+Rules:
+- Cron and heartbeat run in a new session. Persist state to a file and include the file path in the scheduled message.
+- The polling step should read the state file, call the appropriate list_* API, then proceed or reschedule.
+
+Suggested state file: `tmp/easy_dataset_jobs/<project_id>.json`
+
+Fields to store:
+- `project_id`
+- `step` (split_text | generate_questions | generate_answers_batch | export)
+- `file_names`
+- `expected_min_count` (optional)
+- `next_action`
+
+Cron tool example:
+
+```
+cron(
+    action="add",
+    message="Check Easy Dataset state at tmp/easy_dataset_jobs/abc123.json and continue. If not ready, reschedule in 5m.",
+    every_seconds=300
+)
+```
+
+Polling rules:
+- After `split_text`: call `mcp_easy_dataset_list_chunks`. If chunks > 0, proceed. Else reschedule.
+- After `generate_questions`: call `mcp_easy_dataset_list_questions`. If questions > 0, proceed. Else reschedule.
+- After `generate_answers_batch`: call `mcp_easy_dataset_list_datasets`. If count increases or status indicates completion, proceed. Else reschedule.
+
+#### Orchestration Template (for Cron/Heartbeat)
+
+Use this template when a polling callback fires. It assumes a state file exists and is referenced in the scheduled message.
+
+```
+1) read_file(path="tmp/easy_dataset_jobs/<project_id>.json")
+2) Parse fields: project_id, step, file_names, next_action
+3) Switch on step:
+
+   - split_text:
+     mcp_easy_dataset_list_chunks(project_id=project_id)
+     if chunks > 0:
+        next_action = "generate_questions"
+        mcp_easy_dataset_generate_questions(project_id=project_id, model="gpt-4o", language="zh")
+        update state file (step=generate_questions)
+        cron add every 5m to recheck
+     else:
+        cron add every 5m to recheck
+
+   - generate_questions:
+     mcp_easy_dataset_list_questions(project_id=project_id)
+     if questions > 0:
+        next_action = "generate_answers_batch"
+        mcp_easy_dataset_generate_answers_batch(project_id=project_id, model="gpt-4o", language="zh")
+        update state file (step=generate_answers_batch)
+        cron add every 5m to recheck
+     else:
+        cron add every 5m to recheck
+
+   - generate_answers_batch:
+     mcp_easy_dataset_list_datasets(project_id=project_id, page=1, size=20)
+     if dataset_count > 0 (or increases):
+        next_action = "export"
+        mcp_easy_dataset_export_dataset(project_id=project_id, format="alpaca", status="confirmed")
+        update state file (step=export, done=true)
+     else:
+        cron add every 5m to recheck
+
+4) If estimated remaining time is large, increase interval (e.g., 10–15m).
+```
 ### Phase 7: Review & Export
 
 Review generated QA pairs:
@@ -197,3 +270,5 @@ Result: Ready-to-use SFT dataset for fine-tuning domain-specific LLMs.
 - **Quality Control**: Review generated QA pairs before export
 - **Language**: Set `language` parameter to match document language (`zh`, `en`, etc.)
 - **Model Selection**: Use capable models (GPT-4, Claude) for better QA quality
+
+
