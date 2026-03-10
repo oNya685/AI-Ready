@@ -13,6 +13,7 @@ from nanobot.bus.queue import MessageBus
 from nanobot.providers.base import LLMProvider
 from nanobot.agent.tools.registry import ToolRegistry
 from nanobot.agent.tools.filesystem import ReadFileTool, WriteFileTool, EditFileTool, ListDirTool
+from nanobot.agent.tools.image_generate import ImageGenerateTool
 from nanobot.agent.tools.shell import ExecTool
 from nanobot.agent.tools.web import WebSearchTool, WebFetchTool
 
@@ -114,6 +115,7 @@ class SubagentManager:
             ))
             tools.register(WebSearchTool(api_key=self.brave_api_key))
             tools.register(WebFetchTool())
+            tools.register(ImageGenerateTool(workspace=self.workspace, allowed_dir=allowed_dir))
             
             # Build messages with subagent-specific prompt
             system_prompt = self._build_subagent_prompt(task)
@@ -255,3 +257,5 @@ When you have completed the task, provide a clear summary of your findings or ac
     def get_running_count(self) -> int:
         """Return the number of currently running subagents."""
         return len(self._running_tasks)
+
+

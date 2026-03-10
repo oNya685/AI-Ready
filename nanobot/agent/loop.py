@@ -17,6 +17,7 @@ from nanobot.agent.subagent import SubagentManager
 from nanobot.agent.tools.cron import CronTool
 from nanobot.agent.tools.data_profile import DataProfileTool
 from nanobot.agent.tools.filesystem import EditFileTool, ListDirTool, ReadFileTool, WriteFileTool
+from nanobot.agent.tools.image_generate import ImageGenerateTool
 from nanobot.agent.tools.message import MessageTool
 from nanobot.agent.tools.python_exec import PythonDataExecTool
 from nanobot.agent.tools.registry import ToolRegistry
@@ -117,6 +118,7 @@ class AgentLoop:
         self.tools.register(WebFetchTool())
         self.tools.register(DataProfileTool(workspace=self.workspace))
         self.tools.register(PythonDataExecTool(workspace=self.workspace))
+        self.tools.register(ImageGenerateTool(workspace=self.workspace, allowed_dir=allowed_dir))
         self.tools.register(MessageTool(send_callback=self.bus.publish_outbound))
         self.tools.register(SpawnTool(manager=self.subagents))
         if self.cron_service:
@@ -461,3 +463,4 @@ class AgentLoop:
         msg = InboundMessage(channel=channel, sender_id="user", chat_id=chat_id, content=content)
         response = await self._process_message(msg, session_key=session_key, on_progress=on_progress)
         return response.content if response else ""
+
